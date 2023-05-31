@@ -16,35 +16,35 @@ def open_file() -> list:
     return text
 
 
-def save_file(txt: str, operation) -> None:
+def save_file(copy_file) -> None:
     with open(path, 'w', encoding='UTF-8') as file:
-        if operation == []:
-            new_text = txt
-        else:
-            new_text = (''.join(operation)) + '\n' + txt
+        new_text = (''.join(copy_file))
         file.write(new_text)
+
+
+print(open_file())
 
 
 def print_phone_book(operation) -> None:
     new_text = ''
     for i in operation:
-        new_text += i
+        new_text += str(i)
     print(new_text)
 
 
-def add_contact() -> str:
-    first_name = input('Введите имя контакта: ')
+def add_contact(copy_file: list) -> list:
+    first_name = '\n'+input('Введите имя контакта: ')
     second_name = input('Введите фамилию контакта: ')
     phone_number = input('Введите телефон контакта: ')
-    comment = input('Введите коментарий для контакта: ')
+    comment = input('Введите коментарий для контакта: ') + '\n'
     new_contact_list = ' '.join([first_name, second_name, phone_number, comment])
-    return new_contact_list
+    copy_file.append(new_contact_list)
+    return copy_file
 
 
-def search_contact():
+def search_contact(copy_file):
     search = input('Если вы хотите осуществить поиск по имени и фамилии, поставьте знак +. Если по номеру знак -.')
-    text = open_file()
-    all_contact = [i.lower() for i in text]
+    all_contact = [i.lower() for i in copy_file]
     found_contact = ''
     if search == '+':
         first_name = input('Введите имя искомого контакта: ').lower()
@@ -62,79 +62,78 @@ def search_contact():
     return found_contact
 
 
-def change_contact() -> str:
-    text = open_file()
-    all_contacts = ''
-    for i in text:
-        all_contacts += i
-    print(f'Найденые контакты: \n{all_contacts}')
-    what_to_change = input('Введите что хотите поменять: ')
-    new_information = input('Введите новую информацию: ')
-    new_contact = all_contacts.replace(what_to_change, new_information)
-    return ''.join(new_contact)
-
-
-def delete_contact():
-    text = open_file()
+def change_contact(copy_file: list) -> list:
     all_contacts = ''
     cnt = 1
-    for i in text:
+    for i in copy_file:
+        all_contacts += str(cnt) + '.' + ' ' + i
+        cnt += 1
+    print(f'Найденые контакты: \n{all_contacts}')
+    what_to_change = int(input('Введите номер контакта, который хотите поменять: '))
+    new_information = input('Введите новую информацию (имя, фамилию, номер телефона, коментарий): ') + '\n'
+    copy_file[what_to_change-1] = new_information
+    return copy_file
+
+def delete_contact(copy_file: list):
+    all_contacts = ''
+    cnt = 1
+    for i in copy_file:
         all_contacts += str(cnt) + '.' + ' ' + i
         cnt += 1
     print(f'Найденые контакты: \n{all_contacts}')
     delete_name = int(input('Введите номер строки который хотите удалить: '))
-    del text[delete_name - 1]
-    with open(path, 'w', encoding='UTF-8') as file:
-        file.write(''.join(text))
+    del copy_file[delete_name - 1]
+    return copy_file
 
 
-def menu():
+def menu(copy_file):
     print(
         'Доступные команды: /comand - показывает список команд, /all - все контакты, \n'
         '/add - добавить контакт, /search - поиск контакта, /change - изменить контакт, \n'
-        '/delete - удалить контакт, /exit - выйти из программы')
+        '/delete - удалить контакт, /save- сохраняет все изменения, /exit - выйти из программы')
     while True:
         menu = input('Введите действие: ')
         if menu == '/comand':
             print('Доступные команды: /comand - показывает список команд, /all - все контакты, \n'
                   '/add - добавить контакт, /search - поиск контакта, /change - изменить контакт, \n'
-                  '/delete - удалить контакт, /exit - выйти из программы')
+                  '/delete - удалить контакт, /save- сохраняет все изменения, /exit - выйти из программы')
             continue
         if menu == '/all':
-            print_phone_book(open_file())
+            print_phone_book(copy_file)
             continue
         if menu == '/add':
-            new_contact = add_contact()
-            save_file(new_contact, open_file())
+            copy_file = add_contact(copy_file)
             print('Контакт успешно добавлен.')
             print('Теперь телефонный справочник выглядит так: ')
-            print_phone_book(open_file())
+            print_phone_book(copy_file)
             continue
         if menu == '/search':
-            found = search_contact()
+            found = search_contact(copy_file)
             print(f'Нашли следующие варианты:\n{found}')
             continue
         if menu == '/change':
-            change = change_contact()
-            ans = input('Хотите сохранить изменения? Введите да/нет: ').lower()
+            copy_file = change_contact(copy_file)
+            print('Теперь телефонный справочник выглядит так: ')
+            print_phone_book(copy_file)
+            continue
+        if menu == '/delete':
+            copy_file = delete_contact(copy_file)
+            print('Контакт успешно удален')
+            print('Теперь телефонный справочник выглядит так: ')
+            print_phone_book(copy_file)
+            continue
+        if menu == '/save':
+            ans = input('Хотите сохранить изменения? Введите: Y/N: ').lower()
             if ans == 'да':
-                with open('Phone_book.txt', 'w', encoding='UTF-8') as file:
-                    file.write(change)
+                save_file(copy_file)
                 print('Успешно')
             else:
                 print('Изменения отменены')
-            print('Теперь телефонный справочник выглядит так: ')
-            print_phone_book(open_file())
-            continue
-        if menu == '/delete':
-            delete_contact()
-            print('Контакт успешно удален')
-            print('Теперь телефонный справочник выглядит так: ')
-            print_phone_book(open_file())
             continue
         if menu == '/exit':
             print('До скорых встреч')
             break
 
 
-menu()
+copy_open_file = open_file()
+menu(copy_open_file)
